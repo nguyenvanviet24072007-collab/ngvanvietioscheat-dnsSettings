@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mô Phỏng Thuật Toán</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#141b26; --line:#243044; --text:#dbe4f0; --muted:#7d8ba3;
+  --accent:#4fd1c5; --accent2:#f0a63a; --bad:#e85d75; --good:#4fd1c5;
+  padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Courier New',ui-monospace,monospace;line-height:1.5;}
+h1{font-size:1.15rem;font-weight:700;letter-spacing:.02em;margin:0;}
+header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--panel);}
+header p{margin:2px 0 0;color:var(--muted);font-size:.8rem;}
+.wrap{max-width:1100px;margin:0 auto;padding:20px;}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:18px;}
+@media(max-width:800px){.grid{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;}
+.panel h2{font-size:.85rem;color:var(--accent2);margin:0 0 10px;text-transform:none;font-weight:700;}
+label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:4px;}
+input[type=number]{width:70px;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:4px;font-family:inherit;}
+button{background:var(--bg);border:1px solid var(--line);color:var(--text);padding:7px 12px;border-radius:4px;font-family:inherit;font-size:.8rem;cursor:pointer;}
+button:hover{border-color:var(--accent);color:var(--accent);}
+button.primary{background:var(--accent);color:#062421;border-color:var(--accent);font-weight:700;}
+button.primary:hover{filter:brightness(1.08);}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+#matrixBox{margin-top:10px;overflow-x:auto;max-width:100%;}
+table.mtx{border-collapse:collapse;font-size:.78rem;}
+table.mtx th{color:var(--muted);padding:3px;text-align:center;}
+table.mtx td input{width:38px;padding:4px 2px;text-align:center;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:3px;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tab{padding:7px 12px;border:1px solid var(--line);border-radius:4px;font-size:.78rem;cursor:pointer;color:var(--muted);}
+.tab.active{color:var(--bg);background:var(--accent2);border-color:var(--accent2);font-weight:700;}
+svg{width:100%;height:340px;background:var(--bg);border:1px solid var(--line);border-radius:6px;display:block;}
+.edge-label{fill:var(--muted);font-size:11px;}
+.node circle{fill:#1b2434;stroke:var(--line);stroke-width:2;}
+.node text{fill:var(--text);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central;}
+.result{margin-top:14px;font-size:.85rem;}
+.verdict{padding:8px 12px;border-radius:5px;margin-bottom:10px;font-weight:700;font-size:.85rem;}
+.verdict.yes{background:rgba(79,209,197,.12);color:var(--good);border:1px solid var(--good);}
+.verdict.no{background:rgba(232,93,117,.12);color:var(--bad);border:1px solid var(--bad);}
+.stepline{color:var(--muted);font-size:.8rem;}
+.seq{color:var(--accent2);font-weight:700;}
+table.res{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:8px;}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;}
+table.res th{color:var(--muted);}
+.total{margin-top:8px;font-weight:700;color:var(--accent2);}
+select{background:var(--bg);border:1px solid var(--line);color:var(--text);padding:6px;border-radius:4px;font-family:inherit;}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Mô phỏng thuật toán đồ thị</h1><p>Euler · Hamilton · Prim · Kruskal · Dijkstra</p>
+<p>@ngvanvietioscheat_officialcheatingtrade</p></div>
+</header>
+<div class="wrap">
+  <div class="grid">
+    <div class="panel">
+      <h2>1. Nhập đồ thị</h2>
+      <div class="row">
+        <div><label>Số đỉnh</label><input type="number" id="nInput" min="2" max="10" value="5"></div>
+        <button id="buildBtn">Tạo bảng</button>
+        <button id="randomBtn">Ngẫu nhiên</button>
+      </div>
+      <div id="matrixBox"></div>
+      <div class="row" style="margin-top:12px;">
+        <button class="primary" id="applyBtn">Áp dụng đồ thị</button>
+      </div>
+      <p class="stepline" style="margin-top:8px;">Ma trận đối xứng, đồ thị vô hướng. Số 0 = không có cạnh. Nhấn ô để chỉnh, ứng dụng sẽ tự đối xứng.</p>
+    </div>
+    <div class="panel">
+      <h2>2. Đồ thị hiện tại</h2>
+      <svg id="graphSvg" viewBox="0 0 500 340"></svg>
+      <div class="tabs" id="tabs"></div>
+      <div id="output"></div>
+    </div>
+  </div>
+</div>
+<script>
+const ALG = [
+  {id:'euler', name:'Euler'},
+  {id:'hamilton', name:'Hamilton'},
+  {id:'prim', name:'Prim (MST)'},
+  {id:'kruskal', name:'Kruskal (MST)'},
+  {id:'dijkstra', name:'Dijkstra'}
+];
+let n = 5, graph = [], nodePos = [];
+const L = i => String.fromCharCode(65+i);
+
+function buildMatrixTable(){
+  n = parseInt(document.getElementById('nInput').value);
+  let html = '<table class="mtx"><tr><th></th>' + Array.from({length:n},(_,j)=>`<th>${L(j)}</th>`).join('') + '</tr>';
+  for(let i=0;i<n;i++){
+    html += `<tr><th>${L(i)}</th>`;
+    for(let j=0;j<n;j++){
+      const v = (graph[i] && graph[i][j]!==undefined) ? graph[i][j] : 0;
+      html += `<td><input type="number" min="0" data-i="${i}" data-j="${j}" value="${i===j?0:v}" ${i===j?'disabled':''}></td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.getElementById('matrixBox').innerHTML = html;
+  document.querySelectorAll('#matrixBox input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i=+inp.dataset.i, j=+inp.dataset.j, v=parseInt(inp.value)||0;
+      const mirror = document.querySelector(`#matrixBox input[data-i="${j}"][data-j="${i}"]`);
+      if(mirror) mirror.value = v;
+    });
+  });
+}
+
+function randomGraph(){
+  n = parseInt(document.getElementById('nInput').value);
+  const m = Array.from({length:n},()=>Array(n).fill(0));
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+    if(Math.random()<0.5){ const w = 1+Math.floor(Math.random()*9); m[i][j]=w; m[j][i]=w; }
+  }
+  graph = m;
+  buildMatrixTable();
+}
+
+function readMatrix(){
+  const m = Array.from({length:n},()=>Array(n).fill(0));
+  document.querySelectorAll('#matrixBox input').forEach(inp=>{
+    const i=+inp.dataset.i, j=+inp.dataset.j;
+    m[i][j] = parseInt(inp.value)||0;
+  });
+  graph = m;
+}
+
+function layoutNodes(){
+  const cx=250, cy=165, r=125;
+  nodePos = [];
+  for(let i=0;i<n;i++){
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    nodePos.push({x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)});
+  }
+}
+
+function drawGraph(highlightEdges=[], highlightNodes=[], dijkstraDist=null){
+  layoutNodes();
+  const svg = document.getElementById('graphSvg');
+  let s = '';
+  const hlSet = new Set(highlightEdges.map(e=>e.slice().sort().join('-')));
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+    if(graph[i][j]!==0){
+      const on = hlSet.has([i,j].sort().join('-'));
+      const p1=nodePos[i], p2=nodePos[j];
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      s += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${on?'#f0a63a':'#243044'}" stroke-width="${on?3:1.5}"/>`;
+      s += `<rect x="${mx-9}" y="${my-8}" width="18" height="14" fill="#0d1117"/>`;
+      s += `<text class="edge-label" x="${mx}" y="${my+3}" text-anchor="middle">${graph[i][j]}</text>`;
+    }
+  }
+  const hlNodeSet = new Set(highlightNodes);
+  for(let i=0;i<n;i++){
+    const p = nodePos[i];
+    const on = hlNodeSet.has(i);
+    s += `<g class="node"><circle cx="${p.x}" cy="${p.y}" r="17" ${on?'style="fill:#f0a63a;stroke:#f0a63a"':''}/>`;
+    s += `<text x="${p.x}" y="${p.y}" ${on?'style="fill:#0d1117"':''}>${L(i)}</text></g>`;
+    if(dijkstraDist){
+      s += `<text x="${p.x}" y="${p.y+28}" text-anchor="middle" font-size="10" fill="#7d8ba3">${dijkstraDist[i]===Infinity?'∞':dijkstraDist[i]}</text>`;
+    }
+  }
+  svg.innerHTML = s;
+}
+
+function eulerCycle(g){
+  const nn=g.length;
+  for(let i=0;i<nn;i++){ let d=0; for(let j=0;j<nn;j++) if(g[i][j]!==0) d++; if(d%2!==0) return null; }
+  const gg = g.map(r=>r.slice());
+  const stack=[0], cyc=[];
+  while(stack.length){
+    const u = stack[stack.length-1];
+    let found=false;
+    for(let v=0;v<nn;v++){ if(gg[u][v]!==0){ found=true; gg[u][v]=0; gg[v][u]=0; stack.push(v); break; } }
+    if(!found) cyc.push(stack.pop());
+  }
+  for(let i=0;i<nn;i++)for(let j=0;j<nn;j++) if(gg[i][j]!==0) return null;
+  return cyc.reverse();
+}
+
+function hamiltonCycle(g){
+  const nn=g.length;
+  const path=[0].concat(Array(nn-1).fill(-1));
+  function canAdd(v,pos){
+    if(g[path[pos-1]][v]===0) return false;
+    for(let i=0;i<pos;i++) if(path[i]===v) return false;
+    return true;
+  }
+  function backtrack(pos){
+    if(pos===nn) return g[path[nn-1]][path[0]]!==0;
+    for(let v=1;v<nn;v++){
+      if(canAdd(v,pos)){ path[pos]=v; if(backtrack(pos+1)) return true; path[pos]=-1; }
+    }
+    return false;
+  }
+  if(nn>1 && backtrack(1)){ path.push(path[0]); return path; }
+  return null;
+}
+
+function prim(g){
+  const nn=g.length;
+  const chosen=Array(nn).fill(false), dist=Array(nn).fill(Infinity), parent=Array(nn).fill(-1);
+  dist[0]=0; const res=[];
+  for(let k=0;k<nn;k++){
+    let u=-1;
+    for(let i=0;i<nn;i++) if(!chosen[i] && (u===-1||dist[i]<dist[u])) u=i;
+    if(u===-1||dist[u]===Infinity) break;
+    chosen[u]=true;
+    if(parent[u]!==-1) res.push([parent[u],u,g[parent[u]][u]]);
+    for(let v=0;v<nn;v++) if(g[u][v]!==0 && !chosen[v] && g[u][v]<dist[v]){ dist[v]=g[u][v]; parent[v]=u; }
+  }
+  return res;
+}
+
+function kruskal(g){
+  const nn=g.length; const edges=[];
+  for(let i=0;i<nn;i++)for(let j=i+1;j<nn;j++) if(g[i][j]!==0) edges.push([g[i][j],i,j]);
+  edges.sort((a,b)=>a[0]-b[0]);
+  const parent=Array.from({length:nn},(_,i)=>i);
+  function find(x){ if(parent[x]!==x) parent[x]=find(parent[x]); return parent[x]; }
+  const res=[];
+  for(const [w,u,v] of edges){
+    const a=find(u), b=find(v);
+    if(a!==b){ parent[b]=a; res.push([u,v,w]); if(res.length===nn-1) break; }
+  }
+  return res;
+}
+
+function dijkstra(g,start){
+  const nn=g.length;
+  const dist=Array(nn).fill(Infinity), prev=Array(nn).fill(-1), visited=Array(nn).fill(false);
+  dist[start]=0;
+  for(let k=0;k<nn;k++){
+    let u=-1;
+    for(let i=0;i<nn;i++) if(!visited[i] && (u===-1||dist[i]<dist[u])) u=i;
+    if(u===-1||dist[u]===Infinity) break;
+    visited[u]=true;
+    for(let v=0;v<nn;v++) if(g[u][v]!==0 && !visited[v] && dist[u]+g[u][v]<dist[v]){ dist[v]=dist[u]+g[u][v]; prev[v]=u; }
+  }
+  return {dist, prev};
+}
+function pathTo(prev,start,dest){
+  if(dest===start) return [start];
+  if(prev[dest]===-1) return [];
+  const p=[]; let d=dest;
+  while(d!==-1){ p.push(d); d=prev[d]; }
+  return p.reverse();
+}
+
+let activeTab = 'euler';
+function edgesOfCycle(cyc){ const e=[]; for(let i=0;i<cyc.length-1;i++) e.push([cyc[i],cyc[i+1]]); return e; }
+
+function renderOutput(){
+  const out = document.getElementById('output');
+  if(activeTab==='euler'){
+    const c = eulerCycle(graph);
+    if(c){
+      drawGraph(edgesOfCycle(c), c);
+      out.innerHTML = `<div class="verdict yes">CÓ chu trình Euler</div><div class="stepline">Mọi đỉnh đều có bậc chẵn và đồ thị liên thông cạnh.</div><div class="seq">${c.map(L).join(' → ')}</div>`;
+    } else {
+      drawGraph();
+      out.innerHTML = `<div class="verdict no">KHÔNG có chu trình Euler</div><div class="stepline">Có đỉnh bậc lẻ, hoặc đồ thị không liên thông đủ cạnh để khép mạch.</div>`;
+    }
+  } else if(activeTab==='hamilton'){
+    const p = hamiltonCycle(graph);
+    if(p){
+      drawGraph(edgesOfCycle(p), p);
+      out.innerHTML = `<div class="verdict yes">CÓ chu trình Hamilton</div><div class="stepline">Đi qua mỗi đỉnh đúng một lần và quay lại đỉnh xuất phát.</div><div class="seq">${p.map(L).join(' → ')}</div>`;
+    } else {
+      drawGraph();
+      out.innerHTML = `<div class="verdict no">KHÔNG có chu trình Hamilton</div><div class="stepline">Không tìm được thứ tự đỉnh nào thỏa mãn đủ cạnh nối liên tiếp và khép vòng.</div>`;
+    }
+  } else if(activeTab==='prim'){
+    const res = prim(graph);
+    const edges = res.map(([u,v])=>[u,v]);
+    drawGraph(edges);
+    let total = res.reduce((s,[,,w])=>s+w,0);
+    out.innerHTML = `<div class="stepline">Bắt đầu từ đỉnh ${L(0)}, luôn chọn cạnh nhẹ nhất nối vào cây đang xây.</div>`+
+      `<table class="res"><tr><th>Cạnh</th><th>Trọng số</th></tr>${res.map(([u,v,w])=>`<tr><td>${L(u)} - ${L(v)}</td><td>${w}</td></tr>`).join('')}</table>`+
+      `<div class="total">Tổng trọng số cây khung: ${total}${res.length<n-1?' (đồ thị không liên thông, cây khung không đủ)':''}</div>`;
+  } else if(activeTab==='kruskal'){
+    const res = kruskal(graph);
+    const edges = res.map(([u,v])=>[u,v]);
+    drawGraph(edges);
+    let total = res.reduce((s,[,,w])=>s+w,0);
+    out.innerHTML = `<div class="stepline">Sắp xếp tất cả cạnh theo trọng số tăng dần, thêm cạnh nếu không tạo chu trình.</div>`+
+      `<table class="res"><tr><th>Cạnh</th><th>Trọng số</th></tr>${res.map(([u,v,w])=>`<tr><td>${L(u)} - ${L(v)}</td><td>${w}</td></tr>`).join('')}</table>`+
+      `<div class="total">Tổng trọng số cây khung: ${total}${res.length<n-1?' (đồ thị không liên thông, cây khung không đủ)':''}</div>`;
+  } else if(activeTab==='dijkstra'){
+    let sel = document.getElementById('startSel');
+    const start = sel ? parseInt(sel.value) : 0;
+    const {dist, prev} = dijkstra(graph, start);
+    const allEdges = [];
+    for(let i=0;i<n;i++) if(i!==start){ const p=pathTo(prev,start,i); for(let k=0;k<p.length-1;k++) allEdges.push([p[k],p[k+1]]); }
+    drawGraph(allEdges, [start], dist);
+    let rows = '';
+    for(let i=0;i<n;i++){
+      if(dist[i]===Infinity) rows += `<tr><td>${L(i)}</td><td colspan="2">Không có đường đi</td></tr>`;
+      else rows += `<tr><td>${L(i)}</td><td>${pathTo(prev,start,i).map(L).join(' → ')}</td><td>${dist[i]}</td></tr>`;
+    }
+    out.innerHTML = `<div class="row"><label style="margin:0;">Đỉnh xuất phát</label><select id="startSel">${Array.from({length:n},(_,i)=>`<option value="${i}" ${i===start?'selected':''}>${L(i)}</option>`).join('')}</select></div>`+
+      `<table class="res"><tr><th>Đỉnh</th><th>Đường đi</th><th>Độ dài</th></tr>${rows}</table>`;
+    document.getElementById('startSel').addEventListener('change', renderOutput);
+  }
+}
+
+function renderTabs(){
+  const t = document.getElementById('tabs');
+  t.innerHTML = ALG.map(a=>`<div class="tab ${a.id===activeTab?'active':''}" data-id="${a.id}">${a.name}</div>`).join('');
+  t.querySelectorAll('.tab').forEach(el=>el.addEventListener('click', ()=>{ activeTab = el.dataset.id; renderTabs(); renderOutput(); }));
+}
+
+document.getElementById('buildBtn').addEventListener('click', buildMatrixTable);
+document.getElementById('randomBtn').addEventListener('click', randomGraph);
+document.getElementById('applyBtn').addEventListener('click', ()=>{ readMatrix(); renderTabs(); renderOutput(); });
+
+randomGraph();
+renderTabs();
+readMatrix();
+renderOutput();
+</script>
+</body>
+</html>
